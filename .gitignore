@@ -1,24 +1,54 @@
-# Secrets / tokens / creds
-.env
-*.pkl
-token.pkl
-*client_secret*.json
-*credentials*.json
-service_account.json
-
-# Local logs & outputs
-logs/
-*.log
-*.xlsx
-*.xls
-*.csv
-
-# macOS
-.DS_Store
-
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.dist/
 .venv/
 venv/
-EOF
+env/
+.python-version
+
+# macOS cruft
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VS Code / IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Local data/outputs
+*.xlsx
+*.csv
+*.log
+logs/
+tmp/
+.cache/
+
+# OAuth tokens / credentials
+token.pkl
+*.pkl
+client_secret*.json
+credentials.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Launchd / system copies
+~/Library/LaunchAgents/com.shopify.transfers.export.plist
+
+# Pip / build
+pip-wheel-metadata/
+build/
+dist/
+
+# Notebook checkpoints (if any)
+.ipynb_checkpoints/
+
+# Node (just in case)
+node_modules/
