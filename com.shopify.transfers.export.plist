@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.shopify.transfers.export</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/YOURUSER/path/to/repo/run_transfers.sh</string>
+  </array>
+
+  <!-- Run every day at 05:30 local time -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>5</integer>
+    <key>Minute</key><integer>30</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/YOURUSER/Library/Logs/shopify-transfers.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOURUSER/Library/Logs/shopify-transfers.err.log</string>
+
+  <key>RunAtLoad</key><true/>
+</dict>
+</plist>
