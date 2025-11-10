@@ -20,7 +20,7 @@ Exports Shopify Inventory Transfers to a formatted Google Sheet with per-transfe
 ## Setup (local)
 1. **Clone and install**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/shopify-transfers-export.git
+   git clone https://github.com/amrocodes/shopify-transfers-export.git
    cd shopify-transfers-export
    python3 -m venv .venv && source .venv/bin/activate
    pip install -r requirements.txt  # create this file if you like (see below)
