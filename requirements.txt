@@ -1,12 +1,9 @@
-cat > requirements.txt << 'EOF'
 pandas
-python-dateutil
-gspread
-gspread_dataframe
-google-api-python-client
 requests
-EOF
-
-git add requirements.txt
-git commit -m "Add requirements.txt"
-git push
+gspread
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+gspread-dataframe
+google-api-python-client
+python-dateutil
