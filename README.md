@@ -1,3 +1,12 @@
+<p align="left">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-blue" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" />
+  <img src="https://img.shields.io/github/last-commit/amrocodes/shopify-transfers-export" />
+  <img src="https://img.shields.io/github/issues/amrocodes/shopify-transfers-export" />
+  <img src="https://img.shields.io/github/issues-pr/amrocodes/shopify-transfers-export" />
+  <img src="https://img.shields.io/badge/code%20style-black-000000.svg" />
+</p>
+
 # Shopify Transfers Export
 
 This project automates exporting active Shopify inventory transfers and updating a shared Google Sheets dashboard. It collects transfer data via the Shopify GraphQL Admin API, processes each line item including product images, and updates individual Google Sheets tabs with clean formatting and embedded images. The script can also run automatically on a schedule using macOS launchd.
