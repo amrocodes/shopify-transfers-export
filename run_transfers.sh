@@ -1,42 +1,37 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Base paths (defaults can be overridden by env)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="${BASE_DIR:-$SCRIPT_DIR}"
-ENV_FILE="${ENV_FILE:-$BASE_DIR/.env}"
-PY_BIN="${PY_BIN:-python3}"
-SCRIPT="${SCRIPT:-$BASE_DIR/shopify_transfers_pretty_export.py}"
-LOG_DIR="${LOG_DIR:-$BASE_DIR/logs}"
-LOCK_DIR="${LOCK_DIR:-$BASE_DIR/.run.lock}"
+# repo root (directory of this script)
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$BASE_DIR/.." && pwd)"
 
+ENV_FILE="$REPO_ROOT/.env"
+SCRIPT="$REPO_ROOT/shopify_transfers_pretty_export.py"
+PY_BIN="$REPO_ROOT/.venv/bin/python3"
+LOG_DIR="$REPO_ROOT/logs"
 mkdir -p "$LOG_DIR"
 
-# Prevent overlapping runs (portable lock using mkdir)
-if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-  echo "Another run is already in progress. Exiting."
-  exit 0
+# bootstrap venv if missing
+if [[ ! -x "$PY_BIN" ]]; then
+  python3 -m venv "$REPO_ROOT/.venv"
+  "$REPO_ROOT/.venv/bin/pip" install -U pip
+  "$REPO_ROOT/.venv/bin/pip" install -r "$REPO_ROOT/requirements.txt"
 fi
-trap 'rmdir "$LOCK_DIR"' EXIT
 
-# Load .env (export all keys)
+# Load .env safely
 if [[ -f "$ENV_FILE" ]]; then
-  set -a
-  # shellcheck disable=SC1090
-  . "$ENV_FILE"
-  set +a
-else
-  echo "WARN: .env not found at $ENV_FILE" >&2
+  while IFS= read -r line; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+      export "$line"
+    fi
+  done < "$ENV_FILE"
 fi
 
 ts="$(date '+%Y-%m-%d_%H-%M-%S')"
 LOG_OUT="$LOG_DIR/run_$ts.out.log"
 LOG_ERR="$LOG_DIR/run_$ts.err.log"
 
-{
-  echo "[$(date)] Starting Shopify transfers export…"
-  "$PY_BIN" "$SCRIPT"
-  rc=$?
-  echo "[$(date)] Finished with exit code $rc"
-  exit $rc
-} >>"$LOG_OUT" 2>>"$LOG_ERR"
+echo "[$(date)] Starting Shopify transfers export..." | tee -a "$LOG_OUT"
+"$PY_BIN" "$SCRIPT" >>"$LOG_OUT" 2>>"$LOG_ERR"
+echo "[$(date)] Done." | tee -a "$LOG_OUT"
