@@ -3,7 +3,7 @@ cat > README.md << 'EOF'
 
 Exports Shopify Inventory Transfers to a formatted Google Sheet with per-transfer tabs and inline product images.
 
-## What it does
+## What it does 
 - Fetches transfers via Shopify Admin GraphQL API (date-windowed, excludes TRANSFERRED/CANCELED).
 - Builds an "Index" and "Transfers" tab.
 - Creates one sheet per transfer with a compact header and image-enabled items table.
