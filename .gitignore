@@ -1,26 +1,61 @@
-# Python
+########################################
+# PYTHON
+########################################
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.egg-info/
-.dist/
-.venv/
-venv/
-env/
+*.whl
 .python-version
 
-# macOS cruft
+########################################
+# VIRTUAL ENVIRONMENTS
+########################################
+venv/
+.env/
+.venv/
+
+########################################
+# BUILD / DIST
+########################################
+build/
+dist/
+pip-wheel-metadata/
+
+########################################
+# MACOS SYSTEM FILES
+########################################
 .DS_Store
 .AppleDouble
 .LSOverride
 
-# VS Code / IDE
+########################################
+# IDE / EDITOR
+########################################
 .vscode/
 .idea/
 *.code-workspace
 
-# Local data/outputs
+########################################
+# OAUTH / CREDENTIALS
+########################################
+token.pkl
+*.pkl
+client_secret*.json
+credentials.json
+
+########################################
+# ENVIRONMENT FILES
+########################################
+.env
+.env.*
+.env.local
+.env.*.local
+
+########################################
+# OUTPUT FILES
+########################################
 *.xlsx
 *.csv
 *.log
@@ -28,27 +63,13 @@ logs/
 tmp/
 .cache/
 
-# OAuth tokens / credentials
-token.pkl
-*.pkl
-client_secret*.json
-credentials.json
+########################################
+# LAUNCHD (LOCAL ONLY)
+########################################
+com.shopify.transfers.export.plist
 
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# Launchd / system copies
-~/Library/LaunchAgents/com.shopify.transfers.export.plist
-
-# Pip / build
-pip-wheel-metadata/
-build/
-dist/
-
-# Notebook checkpoints (if any)
+########################################
+# MISC / OPTIONAL
+########################################
 .ipynb_checkpoints/
-
-# Node (just in case)
 node_modules/
