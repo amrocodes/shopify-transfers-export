@@ -5,8 +5,10 @@
   <img src="https://img.shields.io/github/issues/amrocodes/shopify-transfers-export" />
   <img src="https://img.shields.io/github/issues-pr/amrocodes/shopify-transfers-export" />
   <img src="https://img.shields.io/badge/code%20style-black-000000.svg" />
-  <img src="https://img.shields.io/badge/Shopify_API-Enabled-black?logo=shopify" />
-  <img src="https://img.shields.io/badge/Google_Sheets_API-Enabled-black?logo=googlesheets" />
+
+  <!-- NEW: Powered by APIs -->
+  <img src="https://img.shields.io/badge/Shopify_API-Connected-95BF47?logo=shopify&logoColor=white" />
+  <img src="https://img.shields.io/badge/Google_Sheets_API-Connected-34A853?logo=googlesheets&logoColor=white" />
 </p>
 
 # Shopify Transfers Export
