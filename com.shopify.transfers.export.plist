@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
- "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>Label</key>
   <string>com.shopify.transfers.export</string>
 
+  <!-- EDIT THIS to your repo absolute path -->
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/YOURUSER/path/to/repo/run_transfers.sh</string>
+    <string>__ABSOLUTE_PATH_TO_REPO__/scrapers/run_transfers.sh</string>
   </array>
 
-  <!-- Run every day at 05:30 local time -->
+  <!-- Run at 05:30 local time -->
   <key>StartCalendarInterval</key>
   <dict>
     <key>Hour</key><integer>5</integer>
@@ -20,10 +20,12 @@
   </dict>
 
   <key>StandardOutPath</key>
-  <string>/Users/YOURUSER/Library/Logs/shopify-transfers.log</string>
-  <key>StandardErrorPath</key>
-  <string>/Users/YOURUSER/Library/Logs/shopify-transfers.err.log</string>
+  <string>__ABSOLUTE_PATH_TO_REPO__/logs/launchd.out.log</string>
 
+  <key>StandardErrorPath</key>
+  <string>__ABSOLUTE_PATH_TO_REPO__/logs/launchd.err.log</string>
+
+  <!-- Don’t rely on GUI session -->
   <key>RunAtLoad</key><true/>
 </dict>
 </plist>
