@@ -1,0 +1,25 @@
+cat > .gitignore << 'EOF'
+# Secrets / tokens / creds
+.env
+*.pkl
+token.pkl
+*client_secret*.json
+*credentials*.json
+service_account.json
+
+# Local logs & outputs
+logs/
+*.log
+*.xlsx
+*.xls
+*.csv
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+EOF
