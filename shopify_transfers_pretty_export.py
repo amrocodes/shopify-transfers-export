@@ -14,6 +14,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from gspread_dataframe import set_with_dataframe
 from googleapiclient.discovery import build  # autosize + format
 from google.oauth2.service_account import Credentials
+from google.oauth2 import service_account 
 
 SHEET_ID = os.getenv("GSPREAD_SHEET_ID")
 OAUTH_CLIENT_JSON = os.getenv("GOOGLE_OAUTH_CLIENT_JSON")
@@ -33,27 +34,35 @@ SCOPES = [
 
 def get_gspread_client():
     """
-    1) In CI (GitHub Actions): use service account JSON from GOOGLE_SERVICE_ACCOUNT_JSON.
-    2) Locally: fall back to OAuth browser flow using client_secret JSON + token.pkl.
+    Returns an authenticated gspread client.
+
+    - In CI (GitHub Actions):
+        Uses GOOGLE_SERVICE_ACCOUNT_JSON_PATH and a service account JSON file.
+    - Locally:
+        Uses the OAuth client JSON + token.pkl flow.
     """
-    # --- Path A: service account (for CI) ---
-    sa_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
-    if sa_json:
+    # 1) CI / service-account mode
+    sa_path = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON_PATH")
+    if sa_path:
         try:
-            info = json.loads(sa_json)
-            creds = Credentials.from_service_account_info(
-                info,
-                scopes=[
-                    "https://www.googleapis.com/auth/spreadsheets",
-                    "https://www.googleapis.com/auth/drive.file",
-                ],
+            # This is the file the GitHub Action writes from the secret
+            print(f"Using Google service account credentials (CI mode). Path: {sa_path}")
+            if not os.path.exists(sa_path):
+                print(f"Service account JSON path does not exist: {sa_path}")
+                return None
+
+            creds = service_account.Credentials.from_service_account_file(
+                sa_path,
+                scopes=SCOPES,
             )
-            print("Using Google service account credentials (CI mode).")
             return gspread.authorize(creds)
         except Exception as e:
             print(f"Google service account auth failed: {e}")
+            # Fall through to local-mode auth if you ever run this script manually on your machine
+            # with GOOGLE_SERVICE_ACCOUNT_JSON_PATH still set but broken.
+            # If you don't want that, you can 'return None' here instead.
 
-    # --- Path B: OAuth user flow (for local use) ---
+    # 2) Local OAuth-mode (what you used on your Mac)
     creds = None
     if os.path.exists(TOKEN_PATH):
         try:
@@ -72,7 +81,6 @@ def get_gspread_client():
             pickle.dump(creds, f)
 
     try:
-        print("Using OAuth client credentials (local mode).")
         return gspread.authorize(creds)
     except Exception as e:
         print(f"Google Sheets auth failed: {e}")
