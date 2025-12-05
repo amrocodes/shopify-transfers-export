@@ -9,9 +9,19 @@ from typing import Dict, Any, List, Optional
 
 # ---------- Google Sheets auth ----------
 import gspread
+import json
 from google_auth_oauthlib.flow import InstalledAppFlow
 from gspread_dataframe import set_with_dataframe
 from googleapiclient.discovery import build  # autosize + format
+from google.oauth2.service_account import Credentials
+
+SHEET_ID = os.getenv("GSPREAD_SHEET_ID")
+OAUTH_CLIENT_JSON = os.getenv("GOOGLE_OAUTH_CLIENT_JSON")
+TOKEN_PATH = os.getenv("GOOGLE_OAUTH_TOKEN_PKL", "token.pkl")
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive.file",
+]
 
 SHEET_ID = os.getenv("GSPREAD_SHEET_ID")
 OAUTH_CLIENT_JSON = os.getenv("GOOGLE_OAUTH_CLIENT_JSON")
@@ -22,6 +32,28 @@ SCOPES = [
 ]
 
 def get_gspread_client():
+    """
+    1) In CI (GitHub Actions): use service account JSON from GOOGLE_SERVICE_ACCOUNT_JSON.
+    2) Locally: fall back to OAuth browser flow using client_secret JSON + token.pkl.
+    """
+    # --- Path A: service account (for CI) ---
+    sa_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if sa_json:
+        try:
+            info = json.loads(sa_json)
+            creds = Credentials.from_service_account_info(
+                info,
+                scopes=[
+                    "https://www.googleapis.com/auth/spreadsheets",
+                    "https://www.googleapis.com/auth/drive.file",
+                ],
+            )
+            print("Using Google service account credentials (CI mode).")
+            return gspread.authorize(creds)
+        except Exception as e:
+            print(f"Google service account auth failed: {e}")
+
+    # --- Path B: OAuth user flow (for local use) ---
     creds = None
     if os.path.exists(TOKEN_PATH):
         try:
@@ -29,6 +61,7 @@ def get_gspread_client():
                 creds = pickle.load(f)
         except Exception:
             creds = None
+
     if not creds:
         if not OAUTH_CLIENT_JSON or not os.path.exists(OAUTH_CLIENT_JSON):
             print("Google Sheets: missing GOOGLE_OAUTH_CLIENT_JSON; skipping upload.")
@@ -37,7 +70,9 @@ def get_gspread_client():
         creds = flow.run_local_server(port=0)
         with open(TOKEN_PATH, "wb") as f:
             pickle.dump(creds, f)
+
     try:
+        print("Using OAuth client credentials (local mode).")
         return gspread.authorize(creds)
     except Exception as e:
         print(f"Google Sheets auth failed: {e}")
