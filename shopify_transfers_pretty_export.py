@@ -132,14 +132,18 @@ def get_google_creds():
 
 def autosize_transfer_tab(spreadsheet_id: str, ws, header_rows: int, nrows: int):
     """
-    No frozen rows.
-    Normalize ALL rows to default height first (≈21 px),
+    No frozen rows. Normalize ALL rows to default height first (≈21 px),
     then make only the data rows tall (~90 px) for the images.
     Auto-resize text columns and vertically center A:D in data rows.
     Also center-align and bold the table header.
     """
+    creds = get_google_creds()
+    if not creds:
+        print(f"No Google creds available; skipping autosize for sheet '{ws.title}'.")
+        return
+
     sheet_id = ws.id
-    service = build("sheets", "v4", credentials=get_google_creds())
+    service = build("sheets", "v4", credentials=creds)
 
     # 0-based indexes
     data_header_row = header_rows            # row with "Image/Product/SKU/Qty"
