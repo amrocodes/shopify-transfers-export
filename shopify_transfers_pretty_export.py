@@ -87,13 +87,47 @@ def get_gspread_client():
         return None
 
 def get_google_creds():
+    """
+    Return Credentials suitable for the Sheets API.
+
+    - In CI (GitHub Actions): use the service account JSON pointed to by
+      GOOGLE_SERVICE_ACCOUNT_JSON_PATH.
+    - Locally: fall back to the same OAuth flow/token used elsewhere.
+    """
+    # CI / service-account mode
+    sa_path = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON_PATH")
+    if sa_path:
+        try:
+            print(f"Using Google service account credentials for autosize. Path: {sa_path}")
+            if not os.path.exists(sa_path):
+                print(f"Service account JSON for autosize not found at {sa_path}")
+                return None
+            return service_account.Credentials.from_service_account_file(
+                sa_path,
+                scopes=SCOPES,
+            )
+        except Exception as e:
+            print(f"Service account creds for autosize failed: {e}")
+            return None
+
+    # Local OAuth mode (same behaviour you had on your Mac)
+    creds = None
     if os.path.exists(TOKEN_PATH):
-        with open(TOKEN_PATH, "rb") as f:
-            return pickle.load(f)
-    flow = InstalledAppFlow.from_client_secrets_file(OAUTH_CLIENT_JSON, SCOPES)
-    creds = flow.run_local_server(port=0)
-    with open(TOKEN_PATH, "wb") as f:
-        pickle.dump(creds, f)
+        try:
+            with open(TOKEN_PATH, "rb") as f:
+                creds = pickle.load(f)
+        except Exception:
+            creds = None
+
+    if not creds:
+        if not OAUTH_CLIENT_JSON or not os.path.exists(OAUTH_CLIENT_JSON):
+            print("No OAuth client JSON for autosize; skipping formatting.")
+            return None
+        flow = InstalledAppFlow.from_client_secrets_file(OAUTH_CLIENT_JSON, SCOPES)
+        creds = flow.run_local_server(port=0)
+        with open(TOKEN_PATH, "wb") as f:
+            pickle.dump(creds, f)
+
     return creds
 
 def autosize_transfer_tab(spreadsheet_id: str, ws, header_rows: int, nrows: int):
