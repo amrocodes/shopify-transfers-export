@@ -10,6 +10,7 @@ from typing import Dict, Any, List, Optional
 # ---------- Google Sheets auth ----------
 import gspread
 import json
+from gspread.exceptions import APIError
 from google_auth_oauthlib.flow import InstalledAppFlow
 from gspread_dataframe import set_with_dataframe
 from googleapiclient.discovery import build  # autosize + format
@@ -485,7 +486,7 @@ def main():
                 ws_transfers = sh.add_worksheet("Transfers", 1000, 26)
             set_with_dataframe(ws_transfers, df)
 
-            # --- Prune stale per-transfer tabs not present in current export ---
+                        # --- Prune stale per-transfer tabs not present in current export ---
             try:
                 prune_enabled = os.getenv("GSPREAD_PRUNE_TABS", "1") == "1"
                 tab_prefix = os.getenv("GSPREAD_TAB_PREFIX", "#T")
