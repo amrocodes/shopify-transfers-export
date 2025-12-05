@@ -1,45 +1,67 @@
 name: Shopify Transfers Export
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"   # Runs every hour. Adjust as needed.
+    # Run every day at 02:30 UTC (adjust as you like)
+    - cron: "30 2 * * *"
+  workflow_dispatch: {}
 
 jobs:
   run-export:
     runs-on: ubuntu-latest
 
+    env:
+      # Shopify – from repo secrets
+      SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+      SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      SHOPIFY_API_VERSION: "2025-10"
+
+      # Google Sheets – from repo secrets
+      GSPREAD_SHEET_ID: ${{ secrets.GSPREAD_SHEET_ID }}
+
+      # We'll write the decoded JSON to this path:
+      GOOGLE_SERVICE_ACCOUNT_JSON_PATH: "${{ github.workspace }}/service_account.json"
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install xlsxwriter
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install pandas gspread google-auth google-auth-oauthlib google-api-python-client python-dotenv requests python-dateutil xlsxwriter
+          fi
 
-      - name: Write service account credentials
+      # 🔑 Decode the base64 service account JSON into a real file
+      - name: Write Google service account JSON
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
         run: |
-          echo "${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}" > service_account.json
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON_B64" ]; then
+            echo "ERROR: GOOGLE_SERVICE_ACCOUNT_JSON_B64 secret is not set"
+            exit 1
+          fi
+          echo "$GOOGLE_SERVICE_ACCOUNT_JSON_B64" | base64 -d > "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH"
+          echo "Wrote service account JSON to $GOOGLE_SERVICE_ACCOUNT_JSON_PATH"
 
-      - name: Set environment variables
-        run: |
-          echo "SHOPIFY_SHOP_DOMAIN=${{ secrets.SHOPIFY_SHOP_DOMAIN }}" >> $GITHUB_ENV
-          echo "SHOPIFY_ACCESS_TOKEN=${{ secrets.SHOPIFY_ACCESS_TOKEN }}" >> $GITHUB_ENV
-          echo "SHOPIFY_API_VERSION=2025-10" >> $GITHUB_ENV
+      - name: Run export script
+        env:
+          # Pass through env so your script can find them
+          SHOPIFY_SHOP_DOMAIN: ${{ env.SHOPIFY_SHOP_DOMAIN }}
+          SHOPIFY_ACCESS_TOKEN: ${{ env.SHOPIFY_ACCESS_TOKEN }}
+          SHOPIFY_API_VERSION: ${{ env.SHOPIFY_API_VERSION }}
 
-          echo "GSPREAD_SHEET_ID=${{ secrets.GSPREAD_SHEET_ID }}" >> $GITHUB_ENV
+          GSPREAD_SHEET_ID: ${{ env.GSPREAD_SHEET_ID }}
+          # Important: your script should read this path
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ env.GOOGLE_SERVICE_ACCOUNT_JSON_PATH }}
 
-          # Point script to service account JSON
-          echo "GOOGLE_OAUTH_CLIENT_JSON=$PWD/service_account.json" >> $GITHUB_ENV
-          echo "GOOGLE_OAUTH_TOKEN_PKL=$PWD/token.pkl" >> $GITHUB_ENV
-
-      - name: Run exporter
         run: |
           python shopify_transfers_pretty_export.py
