@@ -486,12 +486,13 @@ def main():
                 ws_transfers = sh.add_worksheet("Transfers", 1000, 26)
             set_with_dataframe(ws_transfers, df)
 
-                        # --- Prune stale per-transfer tabs not present in current export ---
+            # --- Prune stale per-transfer tabs not present in current export (quota-friendly) ---
             try:
                 prune_enabled = os.getenv("GSPREAD_PRUNE_TABS", "1") == "1"
                 tab_prefix = os.getenv("GSPREAD_TAB_PREFIX", "#T")
+                max_prune = int(os.getenv("GSPREAD_MAX_PRUNE_TABS", "5"))  # limit deletions per run
+
                 if prune_enabled:
-                    # Titles we will (re)create this run
                     current_titles = set(
                         df["transfer_name"]
                         .dropna()
@@ -500,24 +501,30 @@ def main():
                         .tolist()
                     )
                     existing = {w.title: w for w in sh.worksheets()}
-                    to_delete = []
-                    for title, w in existing.items():
-                        # Only consider transfer-like tabs (default prefix "#T")
-                        if title.startswith(tab_prefix) and title not in current_titles:
-                            to_delete.append(w)
-                    if to_delete:
-                        print(f"🧹 Pruning {len(to_delete)} stale transfer tabs not in current window…")
+
+                    # Only consider transfer-like tabs
+                    candidates = [
+                        w for title, w in existing.items()
+                        if title.startswith(tab_prefix) and title not in current_titles
+                    ]
+
+                    if candidates:
+                        print(f"🧹 Pruning up to {max_prune} stale transfer tabs (found {len(candidates)})…")
+
                     deleted = 0
-                    for w in to_delete:
+                    for w in candidates:
+                        if deleted >= max_prune:
+                            break
                         try:
                             print(f"  🗑️ Deleting stale tab: {w.title}")
                             sh.del_worksheet(w)
                             deleted += 1
-                            time.sleep(1.0)  # gentle throttle to avoid 429s
+                            time.sleep(1.0)  # small delay to spread write load
                         except Exception as de:
                             print(f"  ⚠️ Could not delete {w.title}: {de}")
-                    if to_delete:
-                        print(f"✅ Pruned {deleted} stale tabs.")
+
+                    if deleted:
+                        print(f"✅ Pruned {deleted} stale tabs this run.")
             except Exception as e:
                 print(f"⚠️ Prune step skipped due to error: {e}")
 
