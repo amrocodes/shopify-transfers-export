@@ -63,7 +63,7 @@ def get_gspread_client():
             # with GOOGLE_SERVICE_ACCOUNT_JSON_PATH still set but broken.
             # If you don't want that, you can 'return None' here instead.
 
-    # 2) Local OAuth-mode (what you used on your Mac)
+    # 2) Local OAuth-mode (what you used on local devices)
     creds = None
     if os.path.exists(TOKEN_PATH):
         try:
@@ -111,7 +111,7 @@ def get_google_creds():
             print(f"Service account creds for autosize failed: {e}")
             return None
 
-    # Local OAuth mode (same behaviour you had on your Mac)
+    # Local OAuth mode
     creds = None
     if os.path.exists(TOKEN_PATH):
         try:
